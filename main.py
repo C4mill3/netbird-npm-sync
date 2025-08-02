@@ -1,5 +1,5 @@
 import schedule
-import sqlite3
+
 import json
 
 
@@ -24,30 +24,24 @@ def load_environ() -> dict:
             envs[keys[i]]=list(json.loads(envs[keys[i]]))
             
     return envs
-    
-def diff_result(old: dict, new: dict) -> dict:
-    ''' return every action that should be done to update the old dict to the new dict '''
-    
-    actions = {"add": [], "remove": []}
-    
-    for group in new: # the add action
-        if group not in old:
-            actions["add"].append(group)
-        else:
-            for ip in new[group]:
-                if ip not in old[group]:
-                    actions["add"].append((group, ip))
-                    
-    for group in old: # the remove action
-        if group not in new:
-            actions["remove"].append(group)
-        else:
-            for ip in old[group]:
-                if ip not in new[group]:
-                    actions["remove"].append((group, ip))
-                    
-    return actions
 
+def request_netbird(api_url: str, token: str) -> dict:
+    ''' request the Netbird API to get the peers '''
+    import requests
+
+    url = f"{api_url}/peers"
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Token {token}"
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"Request to Netbird failed: {e}")
+        return None
+    
 def format_response(resp : dict, groups_whitelist : list) -> dict:
     ''' Output format: {group1:[ip1,...], ...}'''
     import fnmatch
@@ -69,26 +63,38 @@ def format_response(resp : dict, groups_whitelist : list) -> dict:
             if peer_ip and peer_ip not in output[group]: #check peer_ip is not empty and not already in the group
                 output[group].append(peer_ip)
     return output
-            
 
-def request_netbird(api_url: str, token: str):
-    ''' request the Netbird API to get the peers '''
-    import requests
-
-    url = f"{api_url}/peers"
-    headers = {
-        "Accept": "application/json",
-        "Authorization": f"Token {token}"
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        print(f"Request to Netbird failed: {e}")
-        return None
     
+def diff_result(old: dict, new: dict) -> dict:
+    ''' return every action that should be done to update the old rules to the new rules '''
+    
+    actions = {"add": [], "remove": []}
+    
+    for group in new: # the add action
+        if group not in old:
+            actions["add"].append(group)
+        else:
+            for ip in new[group]:
+                if ip not in old[group]:
+                    actions["add"].append((group, ip))
+                    
+    for group in old: # the remove action
+        if group not in new:
+            actions["remove"].append(group)
+        else:
+            for ip in old[group]:
+                if ip not in new[group]:
+                    actions["remove"].append((group, ip))
+                    
+    return actions
 
+
+def update_npm_conf(actions: dict, envs: dict):
+    ''' update the Nginx Proxy Manager configuration based on the actions list'''
+    import sqlite3
+    
+    from os import path
+    
 
 def main_first_run(envs : dict):
     ''' the entrypoint '''

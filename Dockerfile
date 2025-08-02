@@ -10,4 +10,9 @@ RUN rm requirements.txt
 
 COPY main.py .
 
+RUN mkdir data
+
+RUN echo '{}' > /data/last_resp.json
+
+
 CMD ["python3", "main.py"]

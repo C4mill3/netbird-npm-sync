@@ -1,0 +1,14 @@
+services:
+  netbird-acl:
+    build:
+      context: ./nginxpm-netbird-acl
+      dockerfile: Dockerfile
+    container_name: 'netbird-acl'
+    user: '1000:1000'
+
+    environment:
+      NETBIRD_TOKEN: 'X'
+      NETBIRD_API_URL: 'https://sub.domain.com/api'
+      RUN_EVERY_MINUTES: '30'
+      GROUPS_WHITELIST: '["/home*", "/admin"]'
+      IP_WHITELIST: '[]'
