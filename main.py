@@ -50,7 +50,10 @@ def diff_result(old: dict, new: dict) -> dict:
 
 def format_response(resp : dict, groups_whitelist : list) -> dict:
     ''' Output format: {group1:[ip1,...], ...}'''
+    import fnmatch
+    
     output = {}
+    
     for peer in resp:
         peer_ip= peer.get("ip", "")
         peer_groups= []
