@@ -10,5 +10,11 @@ services:
       NETBIRD_TOKEN: 'X'
       NETBIRD_API_URL: 'https://sub.domain.com/api'
       RUN_EVERY_MINUTES: '30'
+      NPM_USER_ID: '2'
       GROUPS_WHITELIST: '["/home*", "/admin"]'
       IP_WHITELIST: '[]'
+
+    volumes:
+      - './nginxpm-netbird-acl/last_resp.json:/data/last_resp.json'
+      - 'path/to/access:/data/access'
+      - 'path/to/database.sqlite:/data/database.sqlite'

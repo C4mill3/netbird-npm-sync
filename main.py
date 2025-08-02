@@ -92,8 +92,17 @@ def diff_result(old: dict, new: dict) -> dict:
 def update_npm_conf(actions: dict, envs: dict):
     ''' update the Nginx Proxy Manager configuration based on the actions list'''
     import sqlite3
-    
-    from os import path
+    db_path = "/data/database.sqlite"
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"SQLite error: {e}")
+    finally:
+        if 'conn' in locals():
+            conn.close()
     
 
 def main_first_run(envs : dict):
@@ -105,9 +114,38 @@ def main_first_run(envs : dict):
         print("Failed to fetch data from Netbird API while doing initial run.")
         exit(1)
     print("Netbird API: OK")
+    
+    formatted_response = format_response(resp, envs["GROUPS_WHITELIST"])
+    
+    # TODO rewrite every existing rule and add the new ones
+    
+    
+    
 
 def main(envs: dict):
     ''' the main function that will be run every RUN_EVERY_MINUTES '''
+
+    print("Running scheduled task...")
+    resp = request_netbird(envs["NETBIRD_API_URL"], envs["NETBIRD_TOKEN"])
+    if resp is None:
+        print("Failed to fetch data from Netbird API.")
+        return
+
+    formatted_response = format_response(resp, envs["GROUPS_WHITELIST"])
+    with open("/data/last_resp.json", "r") as f:
+        try:
+            last_resp = json.load(f)
+        except json.JSONDecodeError:
+            last_resp = {}
+            
+    actions = diff_result(last_resp, formatted_response)
+    if actions["add"] or actions["remove"]:
+        print("Changes detected, updating Nginx Proxy Manager configuration...")
+        update_npm_conf(actions, envs)
+        with open("/data/last_resp.json", "w") as f:
+            json.dump(formatted_response, f)
+    else:
+        print("No changes detected, skipping update.")
 
     
 
