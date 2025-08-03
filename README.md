@@ -8,9 +8,21 @@ Nebird group acces list generator for nginx proxy manager
 * `NETBIRD_API_URL`: The Netbird API URL. exemple: `https://netbird.domain.com/api` or `https://api.domain.com`
 * NETBIRD_TOKEN: Your Netbird token, to get one go to your Netbird dashboard then `Team` -> `Service Users` -> `Create Service User` and now `Create Access Token`
 
-* `NPM_API_URL`: The NPM API URL. exemple: `https://npm.domain.com/api` or `https://api.domain.com`
-* `NPM_TOKEN`: To get user token first create a new user, then, use the following command: ``
+* `NPM_API_URL`: The NPM API URL. exemple:  priority to internal: `http://DOCKER_NAME:81/api` or `https://npm.domain.com/api`
+* `NPM_USERNAME`: npm user email, you should create a user with `ACL` permission
+* `NPM_PASSWORD`: npm user password
 
 * `RUN_EVERY_MINUTES`: How often the acl should be updated, in minutes. exemple: `30`
 * `GROUPS_WHITELIST`: Should be in list format, you can use joker cards. exemple: `["/home*", "admin"]`
-* `IP_WHITELIST`: The ip will be able to access everything, should be in list format, you should use mask: `["192.168.1.0/24", "10.0.0.1/32"]`
+* `IP_WHITELIST`: The ip will be able to access everything, should be in dict format, you can precise submask. exemple: `{"192.168.1.0/24", "10.0.0.1/32"}`
+
+You can find npm api doc in: `https://npm.domain.com/api/schema`
+
+
+curl -X POST 172.21.0.4:81/api/tokens -H "Content-Type: application/json" -d '{
+  "identity": "netbird.group.auto@home.internal",
+  "secret": "password",}'
+
+
+refresh token:
+curl -X GET 172.21.0.4:81/api/tokens -H "Authorization: Bearer TOKEN"
