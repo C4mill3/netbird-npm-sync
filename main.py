@@ -110,34 +110,99 @@ def format_response_npm(resp : dict) -> dict:
     return output
 
 
-def diff_result(npm: dict, netbird: dict) -> dict:
+def diff_resp(npm: dict, netbird: dict) -> dict:
     ''' return every action that should be done to update the old rules to the new rules '''
 
-    actions = {"add_group": [], "update": [],  "remove": [], "remove_group": []}
+    actions = {"add_group": [], "update": [], "remove_group": []}
 
     for nb_group, nb_ips in netbird.items(): # the add or update action
         if nb_group not in npm:
             actions["add_group"].append((nb_group, nb_ips))
         else:
-            for nb_ip in nb_ips:
-                if nb_ip not in npm[nb_group]["ip"]:
-                    actions["update"].append((npm[nb_group]["id"], nb_ip))
+            # check if any change, delete or add, if so use netbird as new source
+            if set(nb_ips) != set(npm[nb_group]["ip"]):
+                actions["update"].append((nb_group, npm[nb_group]["id"], nb_ips))
 
     for npm_group in npm: # the remove action
         if npm_group not in netbird:
             actions["remove_group"].append(npm_group["id"])
-        else:
-            for npm_ip in npm[npm_group]["ip"]:
-                if npm_ip not in netbird[npm_group]:
-                    actions["remove"].append((npm[npm_group]["id"], npm_ip))
 
-    return actions # {'add': [(name, [ips]), ...], 'update': [(id, ip), ...], 'remove': [(id, ip), 'remove_group': [id]}
+    return actions # {'add_group': [(name, [ips]), ...], 'update': [(name, id, [ips]), ...], 'remove_group': [id]}
 
 
 def update_npm_conf(actions: dict, envs: dict):
     ''' update the Nginx Proxy Manager configuration based on the actions list'''
-    pass
+    import requests
+    
+    global npm_token
+    
+    for name, ips in actions["add_group"]:
+        
+        url = f"{envs['NPM_API_URL']}/nginx/access-lists"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Token {npm_token}",
+            "Content-Type": "application/json"
+        }
+        clients = []
+        for ip in ips:
+            clients.append({"address": ip, "directive": "allow"})
+        data = {
+            "name": name,
+            "satisfy_any": False,
+            "pass_auth": False,
+            "items": [],
+            "clients": clients
+            }
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            response.raise_for_status()
+            print(f"Added group {name} with IPs {ips} to NPM.")
+        except requests.RequestException as e:
+            print(f"Failed to add group {name} with IPs {ips} to NPM: {e}")
+            exit(1)
+    
+    for name, id_, ips in actions["update"]:
+        url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Token {npm_token}",
+            "Content-Type": "application/json"
+        }
+        clients = []
+        for ip in ips:
+            clients.append({"address": ip, "directive": "allow"})
+        data = {
+            "name": name,
+            "satisfy_any": False,
+            "pass_auth": False,
+            "items": [],
+            "clients": clients
+            }
+        
+        try:
+            response = requests.put(url, headers=headers, json=data)
+            response.raise_for_status()
+            print(f"Updated group {name} with IPs {ips} to NPM.")
+        except requests.RequestException as e:
+            print(f"Failed to update group {name} with IPs {ips} to NPM: {e}")
+            exit(1)
 
+    for id_ in actions["remove_group"]:
+        url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Token {npm_token}",
+            "Content-Type": "application/json"
+        }        
+        try:
+            response = requests.delete(url, headers=headers)
+            response.raise_for_status()
+            print(f"Delete group {name} with IPs {ips} to NPM.")
+        except requests.RequestException as e:
+            print(f"Failed to delete group {name} with IPs {ips} to NPM: {e}")
+            exit(1)
+    
 
 def request_npm_token(npm_api_url: str, username: str, password: str) -> str:
     ''' request the Nginx Proxy Manager API to get the token '''
@@ -213,9 +278,11 @@ def main_first_run(envs : dict):
 
     formatted_npm_response = format_response_npm(resp, envs["GROUPS_WHITELIST"])
 
+    actions = diff_resp(formatted_npm_response, formatted_netbird_response)
+    
+    update_npm_conf(actions, envs)
     
 
-    # TODO rewrite every existing rule and add the new ones
 
 
 
@@ -228,22 +295,20 @@ def main(envs: dict):
     if resp is None:
         print("Failed to fetch data from Netbird API.")
         return
+    formatted_netbird_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"])
 
-    formatted_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"])
-    with open("/data/last_resp.json", "r") as f:
-        try:
-            last_resp = json.load(f)
-        except json.JSONDecodeError:
-            last_resp = {}
+    request_npm_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"])    
+    resp=request_npm(envs["NPM_API_URL"])
+    
+    if resp is None:
+        print("Failed to fetch data from NPM API while doing initial run.")
+        exit(1)
 
-    actions = diff_result(last_resp, formatted_response)
-    if actions["add"] or actions["remove"]:
-        print("Changes detected, updating Nginx Proxy Manager configuration...")
-        update_npm_conf(actions, envs)
-        with open("/data/last_resp.json", "w") as f:
-            json.dump(formatted_response, f)
-    else:
-        print("No changes detected, skipping update.")
+    formatted_npm_response = format_response_npm(resp, envs["GROUPS_WHITELIST"])
+
+    actions = diff_resp(formatted_npm_response, formatted_netbird_response)
+    
+    update_npm_conf(actions, envs)
 
 
 if __name__=='__main__':
