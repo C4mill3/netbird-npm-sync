@@ -17,12 +17,3 @@ Nebird group acces list generator for nginx proxy manager
 * `IP_WHITELIST`: The ip will be able to access everything, should be in dict format, you can precise submask. exemple: `{"192.168.1.0/24", "10.0.0.1/32"}`
 
 You can find npm api doc in: `https://npm.domain.com/api/schema`
-
-
-curl -X POST 172.21.0.4:81/api/tokens -H "Content-Type: application/json" -d '{
-  "identity": "netbird.group.auto@home.internal",
-  "secret": "password",}'
-
-
-refresh token:
-curl -X GET 172.21.0.4:81/api/tokens -H "Authorization: Bearer TOKEN"
