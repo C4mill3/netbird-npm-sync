@@ -128,7 +128,7 @@ def diff_resp(npm: dict, netbird: dict) -> dict:
 
     for npm_group in npm: # the remove action
         if npm_group not in netbird:
-            actions["remove_group"].append(npm_group["id"])
+            actions["remove_group"].append(npm[npm_group]["id"])
 
     return actions # {'add_group': [(name, [ips]), ...], 'update': [(name, id, [ips]), ...], 'remove_group': [id]}
 
@@ -298,7 +298,7 @@ def main(envs: dict):
     if resp is None:
         print("Failed to fetch data from Netbird API.")
         return
-    formatted_netbird_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"])
+    formatted_netbird_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"], envs["IP_WHITELIST"])
 
     request_npm_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"])    
     resp=request_npm(envs["NPM_API_URL"])
@@ -325,7 +325,7 @@ if __name__=='__main__':
     except Exception as e:
         print(f"Error during initial run: {e}")
         exit(1) 
-        
+
     schedule.every(envs["RUN_EVERY_MINUTES"]).minutes.do(main, envs)
     
     while True: # keep alive
