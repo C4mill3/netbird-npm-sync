@@ -1,12 +1,13 @@
 # nginxpm-netbird-acl
-Nebird group acces list generator for nginx proxy manager
+This python service is used to sync group permissions from Netbird to Nginx Proxy Manager (NPM) using API.
+
 
 
 
 ## Environment Variables
 
 * `NETBIRD_API_URL`: The Netbird API URL. exemple: `https://netbird.domain.com/api` or `https://api.domain.com`
-* NETBIRD_TOKEN: Your Netbird token, to get one go to your Netbird dashboard then `Team` -> `Service Users` -> `Create Service User` and now `Create Access Token`
+* NETBIRD_TOKEN: Your Netbird token, to get one: Go to your Netbird dashboard then `Team` -> `Service Users` -> `Create Service User` and now `Create Access Token`
 
 * `NPM_API_URL`: The NPM API URL. exemple:  priority to internal: `http://DOCKER_NAME:81/api` or `https://npm.domain.com/api`
 * `NPM_USERNAME`: npm user email, you should create a user with `ACL` permission
@@ -17,3 +18,9 @@ Nebird group acces list generator for nginx proxy manager
 * `IP_WHITELIST`: The ip will be able to access everything, should be in dict format, you can precise submask. exemple: `{group1:{"192.168.1.0/24", "10.0.0.1/32"}}`
 
 You can find npm api doc in: `https://npm.domain.com/api/schema`.
+
+## Other
+
+Nginx Proxy Manager , account permissions:
+
+![Nginx Proxy Manager Permissions](README/permissions.png)
