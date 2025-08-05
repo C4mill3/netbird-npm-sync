@@ -9,7 +9,7 @@ def load_environ() -> dict:
           "NPM_PASSWORD", "RUN_EVERY_MINUTES", "GROUPS_WHITELIST", "IP_WHITELIST"]
     keys_types=["STR", "STR", "STR", "STR", "STR", "INT", "LIST", "DICT"]
     envs={}
-    for i in range(keys):
+    for i in range(len(keys)):
         envs[keys[i]]=environ.get(keys[i])
 
         if envs[keys[i]]=='':
@@ -21,8 +21,11 @@ def load_environ() -> dict:
         elif keys_types[i]=="INT":
             envs[keys[i]]=int(envs[keys[i]])
 
-        elif keys_types[i]=="LIST" or keys_types[i]=="DICT":
+        elif keys_types[i]=="LIST":
             envs[keys[i]]=list(json.loads(envs[keys[i]]))
+            
+        elif keys_types[i]=="DICT":
+            envs[keys[i]]=dict(json.loads(envs[keys[i]]))
 
     return envs
 
@@ -52,7 +55,7 @@ def request_npm(api_url: str) -> dict:
     url = f"{api_url}/nginx/access-lists?expand=clients"
     headers = {
         "Accept": "application/json",
-        "Authorization": f"Token {npm_token}"
+        "Authorization": f"Bearer {npm_token}"
     }
     try:
         response = requests.get(url, headers=headers)
@@ -141,7 +144,7 @@ def update_npm_conf(actions: dict, envs: dict):
         url = f"{envs['NPM_API_URL']}/nginx/access-lists"
         headers = {
             "Accept": "application/json",
-            "Authorization": f"Token {npm_token}",
+            "Authorization": f"Bearer {npm_token}",
             "Content-Type": "application/json"
         }
         clients = []
@@ -166,7 +169,7 @@ def update_npm_conf(actions: dict, envs: dict):
         url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
         headers = {
             "Accept": "application/json",
-            "Authorization": f"Token {npm_token}",
+            "Authorization": f"Bearer {npm_token}",
             "Content-Type": "application/json"
         }
         clients = []
@@ -192,7 +195,7 @@ def update_npm_conf(actions: dict, envs: dict):
         url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
         headers = {
             "Accept": "application/json",
-            "Authorization": f"Token {npm_token}",
+            "Authorization": f"Bearer {npm_token}",
             "Content-Type": "application/json"
         }        
         try:
@@ -213,10 +216,11 @@ def request_npm_token(npm_api_url: str, username: str, password: str) -> str:
 
     url = f"{npm_api_url}/tokens"
 
-    if not npm_token or npm_token_expires < time.time():
+    if not npm_token or npm_token_expires <= time.time():
+        print("Requesting new NPM token...")
         # Request token
         headers={
-            "Accept": "application/json",
+            "Accept":  "application/json",
             "Content-Type": "application/json"
         }
         data = {
@@ -239,6 +243,7 @@ def request_npm_token(npm_api_url: str, username: str, password: str) -> str:
 
     else:
         # Refresh token
+        print("Refreshing NPM token...")
         headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {npm_token}"
@@ -265,7 +270,7 @@ def main_first_run(envs : dict):
         exit(1)
     print("Netbird API: OK")
 
-    formatted_netbird_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"])
+    formatted_netbird_response = format_response_netbird(resp, envs["GROUPS_WHITELIST"], envs["IP_WHITELIST"])
 
     request_npm_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"])
     print("NPM Token: OK")
@@ -276,7 +281,7 @@ def main_first_run(envs : dict):
         exit(1)
     print("NPM API: OK")
 
-    formatted_npm_response = format_response_npm(resp, envs["GROUPS_WHITELIST"])
+    formatted_npm_response = format_response_npm(resp)
 
     actions = diff_resp(formatted_npm_response, formatted_netbird_response)
     
@@ -285,10 +290,8 @@ def main_first_run(envs : dict):
 
 
 
-
-
 def main(envs: dict):
-    ''' the main function that will be run every RUN_EVERY_MINUTES '''
+    ''' the main function that will be run every RUN_EVERY_MINUTES (less logs)'''
 
     print("Running scheduled task...")
     resp = request_netbird(envs["NETBIRD_API_URL"], envs["NETBIRD_TOKEN"])
@@ -304,7 +307,7 @@ def main(envs: dict):
         print("Failed to fetch data from NPM API while doing initial run.")
         exit(1)
 
-    formatted_npm_response = format_response_npm(resp, envs["GROUPS_WHITELIST"])
+    formatted_npm_response = format_response_npm(resp)
 
     actions = diff_resp(formatted_npm_response, formatted_netbird_response)
     
@@ -314,6 +317,17 @@ def main(envs: dict):
 if __name__=='__main__':
     envs=load_environ()
     global npm_token, npm_token_expires
+    npm_token=""
+    npm_token_expires=0
 
-    main_first_run(envs)
+    try:
+        main_first_run(envs)
+    except Exception as e:
+        print(f"Error during initial run: {e}")
+        exit(1) 
+        
     schedule.every(envs["RUN_EVERY_MINUTES"]).minutes.do(main, envs)
+    
+    while True: # keep alive
+        schedule.run_pending()
+        time.sleep(1)

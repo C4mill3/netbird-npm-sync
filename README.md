@@ -14,6 +14,6 @@ Nebird group acces list generator for nginx proxy manager
 
 * `RUN_EVERY_MINUTES`: How often the acl should be updated, in minutes. exemple: `30`
 * `GROUPS_WHITELIST`: Should be in list format, you can use joker cards. exemple: `["/home*", "admin"]`
-* `IP_WHITELIST`: The ip will be able to access everything, should be in dict format, you can precise submask. exemple: `{"192.168.1.0/24", "10.0.0.1/32"}`
+* `IP_WHITELIST`: The ip will be able to access everything, should be in dict format, you can precise submask. exemple: `{group1:{"192.168.1.0/24", "10.0.0.1/32"}}`
 
-You can find npm api doc in: `https://npm.domain.com/api/schema`
+You can find npm api doc in: `https://npm.domain.com/api/schema`.

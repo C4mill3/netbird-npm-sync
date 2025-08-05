@@ -1,25 +1,20 @@
 services:
   netbird-acl:
     build:
-      context: ./nginxpm-netbird-acl
-      dockerfile: Dockerfile
+      context: './nginxpm-netbird-acl'
+      dockerfile: 'Dockerfile'
     container_name: 'netbird-acl'
-    user: '1000:1000'
 
     environment:
       NETBIRD_TOKEN: 'X'
       NETBIRD_API_URL: 'https://sub.domain.com/api'
       NPM_API_URL: 'http://IP:PORT/api'
       NPM_USERNAME: 'X'
-      NPM_SECRET: 'X'
+      NPM_PASSWORD: 'X'
       RUN_EVERY_MINUTES: '30'
-      GROUPS_WHITELIST: '["/home*", "/admin"]'
-      IP_WHITELIST: '[]'
+      GROUPS_WHITELIST: '["/home/*", "/admin"]'
+      IP_WHITELIST: '{}'
 
-    volumes:
-      - './nginxpm-netbird-acl/last_resp.json:/data/last_resp.json'
-      - 'path/to/access:/data/access'
-      - 'path/to/database.sqlite:/data/database.sqlite'
     networks:
       - 'npm-net'
 
