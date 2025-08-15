@@ -18,6 +18,11 @@ services:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: 'npm'
     ...
+    healthcheck:
+      test: ['CMD', '/usr/bin/check-health']
+      interval: '10s'
+      timeout: '3s'
+
 
   netbird-sync:
     image: 'ghcr.io/c4mill3/netbird-npm-sync:latest'
@@ -34,6 +39,9 @@ services:
       RUN_EVERY_MINUTES: '30'
       GROUPS_WHITELIST: '["home-*", "admin"]'
       GROUP_EXCEPT: '{"groupname": ["192.168.1.0/24"]}'
+    depends_on:
+      npm:
+        condition: 'service_healthy'
 ```
 
 
