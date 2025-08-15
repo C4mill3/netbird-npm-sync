@@ -1,8 +1,6 @@
 def load_environ() -> dict:
     from os import environ
     import json
-    keys=[ "RUN_EVERY_MINUTES", "GROUPS_WHITELIST", "GROUP_EXCEPT"]
-    keys_types=[ "INT", "LIST", "DICT"]
     envs={}
 
     #Mandatory env variables
