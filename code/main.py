@@ -36,21 +36,22 @@ def main(envs : dict, verbose: bool = False):
 
 
 if __name__=='__main__':
-    envs=utility.load_environ()
-    global npm_token, npm_token_expires, fail
+    global npm_token, npm_token_expires
     npm_token=""
     npm_token_expires=0
-    fail=0
+    envs=utility.load_environ()
 
     try:
         utility.print_logs("Running initial run...")
-        main(envs)
+        main(envs, verbose=True)
     except Exception as e:
         print(f"Error during initial run: {e}")
         exit(1) 
-
-    schedule.every(envs["RUN_EVERY_MINUTES"]).minutes.do(main, envs)
+    utility.print_logs("Initial run completed successfully.")
     
-    while True: # keep alive
-        schedule.run_pending()
-        time.sleep(1)
+    if envs["RUN_EVERY_MINUTES"] > 0:
+        schedule.every(envs["RUN_EVERY_MINUTES"]).minutes.do(main, envs)
+        utility.print_logs(f"Task scheduled to run every {envs['RUN_EVERY_MINUTES']} minutes.")
+        while True: # keep alive
+            schedule.run_pending()
+            time.sleep(1)
