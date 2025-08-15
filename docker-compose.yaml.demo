@@ -1,19 +1,19 @@
 services:
-  netbird-acl:
-    build:
-      context: './nginxpm-netbird-acl'
-      dockerfile: 'Dockerfile'
-    container_name: 'netbird-acl'
+  netbird-sync:
+    image: 'ghcr.io/c4mill3/netbird-npm-sync:latest'
 
     environment:
+      # Mandatory
       NETBIRD_TOKEN: 'X'
       NETBIRD_API_URL: 'https://sub.domain.com/api'
-      NPM_API_URL: 'http://IP:PORT/api'
+      NPM_API_URL: 'http://INTERNAL_IP:PORT/api'
       NPM_USERNAME: 'X'
       NPM_PASSWORD: 'X'
+
+      # Optional
       RUN_EVERY_MINUTES: '30'
       GROUPS_WHITELIST: '["/home/*", "/admin"]'
-      IP_WHITELIST: '{}'
+      GROUP_EXCEPT: '{}'
 
     networks:
       - 'npm-net'

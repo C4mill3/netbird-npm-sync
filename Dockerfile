@@ -8,7 +8,7 @@ RUN pip install -r requirements.txt
 
 RUN rm requirements.txt
 
-COPY main.py .
+COPY code/* .
 
 
-CMD ["python3", "main.py"]
+CMD ["python3", "-u", "main.py"]
