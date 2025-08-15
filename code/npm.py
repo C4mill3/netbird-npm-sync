@@ -9,7 +9,7 @@ def request_token(npm_api_url: str, username: str, password: str, npm_token : st
     url = f"{npm_api_url}/tokens"
 
     if not npm_token or npm_token_expires <= time.time():
-        ## utility.print_log("Requesting new NPM token...")
+        ## utility.print_logs("Requesting new NPM token...")
         # Request token
         headers={
             "Accept":  "application/json",
@@ -30,12 +30,12 @@ def request_token(npm_api_url: str, username: str, password: str, npm_token : st
             npm_token_expires = int(datetime.strptime(npm_token_expires_str, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp())
 
         except requests.RequestException as e:
-            utility.print_log(f"Request Token to NPM failed: {e}")
+            utility.print_logs(f"Request Token to NPM failed: {e}")
             exit(1)
 
     else:
         # Refresh token
-        ## utility.print_log("Refreshing NPM token...")
+        ## utility.print_logs("Refreshing NPM token...")
         headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {npm_token}"
@@ -50,7 +50,7 @@ def request_token(npm_api_url: str, username: str, password: str, npm_token : st
             npm_token_expires = int(datetime.strptime(npm_token_expires_str, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp())
             
         except requests.RequestException as e:
-            utility.print_log(f"Request Token to NPM failed: {e}")
+            utility.print_logs(f"Request Token to NPM failed: {e}")
             exit(1)
 
 def request_api(api_url: str, npm_token : str) -> dict:
@@ -67,7 +67,7 @@ def request_api(api_url: str, npm_token : str) -> dict:
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        utility.print_log(f"Request to NPM failed: {e}")
+        utility.print_logs(f"Request to NPM failed: {e}")
         return None
 
 
@@ -115,9 +115,9 @@ def update_conf(actions: dict, envs: dict, npm_token : str):
         try:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
-            utility.print_log(f"Added group {name} with IPs {ips} to NPM.")
+            utility.print_logs(f"Added group {name} with IPs {ips} to NPM.")
         except requests.RequestException as e:
-            utility.print_log(f"Failed to add group {name} with IPs {ips} to NPM: {e}")
+            utility.print_logs(f"Failed to add group {name} with IPs {ips} to NPM: {e}")
             exit(1)
     
     for name, id_, ips in actions["update"]:
@@ -141,9 +141,9 @@ def update_conf(actions: dict, envs: dict, npm_token : str):
         try:
             response = requests.put(url, headers=headers, json=data)
             response.raise_for_status()
-            utility.print_log(f"Updated group {name} with IPs {ips} to NPM.")
+            utility.print_logs(f"Updated group {name} with IPs {ips} to NPM.")
         except requests.RequestException as e:
-            utility.print_log(f"Failed to update group {name} with IPs {ips} to NPM: {e}")
+            utility.print_logs(f"Failed to update group {name} with IPs {ips} to NPM: {e}")
             exit(1)
 
     for id_ in actions["remove_group"]:
@@ -156,9 +156,9 @@ def update_conf(actions: dict, envs: dict, npm_token : str):
         try:
             response = requests.delete(url, headers=headers)
             response.raise_for_status()
-            utility.print_log(f"Delete group {name} with IPs {ips} to NPM.")
+            utility.print_logs(f"Delete group {name} with IPs {ips} to NPM.")
         except requests.RequestException as e:
-            utility.print_log(f"Failed to delete group {name} with IPs {ips} to NPM: {e}")
+            utility.print_logs(f"Failed to delete group {name} with IPs {ips} to NPM: {e}")
             exit(1)
     
 

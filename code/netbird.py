@@ -15,7 +15,7 @@ def request_api(api_url: str, token: str) -> dict:
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        utility.print_log(f"Request to Netbird failed: {e}")
+        utility.print_logs(f"Request to Netbird failed: {e}")
         return None
     
 def format_resp(resp : dict, groups_whitelist : list, group_except: dict) -> dict:
