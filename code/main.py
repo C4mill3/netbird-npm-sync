@@ -41,6 +41,8 @@ if __name__=='__main__':
     npm_token_expires=0
     envs=utility.load_environ()
 
+    main(envs, verbose=True)
+    
     try:
         utility.print_logs("Running initial run...")
         main(envs, verbose=True)
