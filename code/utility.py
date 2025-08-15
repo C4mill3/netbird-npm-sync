@@ -36,6 +36,7 @@ def load_environ() -> dict:
         raise(f"Error converting environment variables: {e}")
     except Exception as e:
         raise(f"Unexpected error while loading environment variables: {e}")
+    return envs
 
 def print_logs(text : str):
     from datetime import datetime

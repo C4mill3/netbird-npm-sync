@@ -6,7 +6,6 @@ def request_api(api_url: str, token: str) -> dict:
     
 
     url = f"{api_url}/peers"
-    print(url)
     headers = {
         "Accept": "application/json",
         "Authorization": f"Token {token}"
