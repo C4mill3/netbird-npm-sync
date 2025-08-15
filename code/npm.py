@@ -1,6 +1,6 @@
 import utility
 
-def request_token(npm_api_url: str, username: str, password: str, npm_token : str, npm_token_expires : int) -> str:
+def request_token(npm_api_url: str, username: str, password: str, npm_token : str, npm_token_expires : int) -> tuple[str, int]:
     ''' request the NPM API to get the token '''
     import requests
     from datetime import datetime
@@ -53,7 +53,7 @@ def request_token(npm_api_url: str, username: str, password: str, npm_token : st
             utility.print_logs(f"Request Token to NPM failed: {e}")
             exit(1)
             
-    return npm_token, npm_token_expires
+    return (npm_token, npm_token_expires)
 
 def request_api(api_url: str, npm_token : str) -> dict:
     ''' request the Netbird API to get the peers '''
