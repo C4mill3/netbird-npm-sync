@@ -1,12 +1,10 @@
 import utility
 
-def request_token(npm_api_url: str, username: str, password: str) -> str:
+def request_token(npm_api_url: str, username: str, password: str, npm_token : str, npm_token_expires : int) -> str:
     ''' request the NPM API to get the token '''
     import requests
     from datetime import datetime
     import time
-
-    global npm_token, npm_token_expires
 
     url = f"{npm_api_url}/tokens"
 
@@ -55,12 +53,10 @@ def request_token(npm_api_url: str, username: str, password: str) -> str:
             utility.print_log(f"Request Token to NPM failed: {e}")
             exit(1)
 
-def request_api(api_url: str) -> dict:
+def request_api(api_url: str, npm_token : str) -> dict:
     ''' request the Netbird API to get the peers '''
     import requests
     
-    global npm_token
-
     url = f"{api_url}/nginx/access-lists?expand=clients"
     headers = {
         "Accept": "application/json",
@@ -94,12 +90,10 @@ def format_resp(resp : dict) -> dict:
     return output
 
 
-def update_conf(actions: dict, envs: dict):
+def update_conf(actions: dict, envs: dict, npm_token : str):
     ''' update the NPM conf based on the actions list'''
     import requests
-    
-    global npm_token
-    
+        
     for name, ips in actions["add_group"]:
         
         url = f"{envs['NPM_API_URL']}/nginx/access-lists"

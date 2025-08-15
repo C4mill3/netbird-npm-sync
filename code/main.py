@@ -17,10 +17,10 @@ def main(envs : dict, verbose: bool = False):
 
     formatted_netbird_response = nb.format_resp(resp, envs["GROUPS_WHITELIST"], envs["GROUP_EXCEPT"])
 
-    npm.request_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"])
+    npm.request_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"], npm_token, npm_token_expires)
     if verbose: utility.print_logs("NPM Token: OK")
     
-    resp=npm.request_api(envs["NPM_API_URL"])
+    resp=npm.request_api(envs["NPM_API_URL"], npm_token)
     if resp is None:
         utility.print_logs("Failed to fetch data from NPM API, exiting.")
         exit(1)
@@ -30,7 +30,7 @@ def main(envs : dict, verbose: bool = False):
 
     actions = utility.diff_resp(formatted_npm_response, formatted_netbird_response)
     
-    npm.update_conf(actions, envs)
+    npm.update_conf(actions, envs, npm_token)
     if verbose: utility.print_logs("Up to date")
     
 
