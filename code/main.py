@@ -8,6 +8,8 @@ import utility
 
 def main(envs : dict, verbose: bool = False):
     ''' the main  '''
+    global npm_token, npm_token_expires
+    
     if verbose: utility.print_logs("Fetching data from Netbird API...")
     resp=nb.request_api(envs["NETBIRD_API_URL"], envs["NETBIRD_TOKEN"])
     if resp is None:
