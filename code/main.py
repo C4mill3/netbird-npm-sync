@@ -17,7 +17,7 @@ def main(envs : dict, verbose: bool = False):
 
     formatted_netbird_response = nb.format_resp(resp, envs["GROUPS_WHITELIST"], envs["GROUP_EXCEPT"])
 
-    npm.request_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"], npm_token, npm_token_expires)
+    npm_token, npm_token_expires = npm.request_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"], npm_token, npm_token_expires)
     if verbose: utility.print_logs("NPM Token: OK")
     
     resp=npm.request_api(envs["NPM_API_URL"], npm_token)

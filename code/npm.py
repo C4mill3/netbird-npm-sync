@@ -52,6 +52,8 @@ def request_token(npm_api_url: str, username: str, password: str, npm_token : st
         except requests.RequestException as e:
             utility.print_logs(f"Request Token to NPM failed: {e}")
             exit(1)
+            
+    return npm_token, npm_token_expires
 
 def request_api(api_url: str, npm_token : str) -> dict:
     ''' request the Netbird API to get the peers '''
