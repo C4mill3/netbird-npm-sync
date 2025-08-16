@@ -46,6 +46,7 @@ services:
 
 
 ### Run directly
+You need to setup Env Variable
 ```bash
 git clone https://github.com/C4mill3/netbird-npm-sync.git
 python3 -m venv .venv
