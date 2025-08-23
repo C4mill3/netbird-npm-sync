@@ -1,2 +1,3 @@
 .venv/
-code/socket.py
+__pycache__/
+docker-compose.yaml

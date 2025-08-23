@@ -22,6 +22,7 @@ services:
 
       # Optional
       RUN_EVERY_MINUTES: '30'
+      SOCKET_LIMIT: '10'
       GROUPS_WHITELIST: '["home-*", "admin"]'
       GROUP_EXCEPT: '{"groupname": ["192.168.1.0/24"]}'
     depends_on:

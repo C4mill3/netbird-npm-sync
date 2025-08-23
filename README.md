@@ -66,6 +66,8 @@ python3 code/main.py
 * `NPM_PASSWORD`: npm user password
 
 * `RUN_EVERY_MINUTES`: How often the `ACL` should be updated, in minutes. Default is `30`. If you want to run it only at start, set it to `0`.
+* `SOCKET_LIMIT`: if set, enable a socket server on port 8080 and set a limit of hourly requests. Default is `0` (disabled).
+
 * `GROUPS_WHITELIST`: Should be in list format, you can use joker cards. exemple: `["/home*", "admin"]`
 * `GROUP_EXCEPT`: The ip will be able to access everything, should be in dict format, you can precise submask.exemple: `{group1:["192.168.1.0/24", ...]}`
 

@@ -18,6 +18,8 @@ def load_environ() -> dict:
     # Optional env variables
     try:
         envs["RUN_EVERY_MINUTES"]=int(environ.get("RUN_EVERY_MINUTES", 30))
+
+        envs["SOCKET_LIMIT"]=int(environ.get("SOCKET_LIMIT", 0))
         
         envs["GROUPS_WHITELIST"]=list(json.loads(environ.get("GROUPS_WHITELIST", '["*"]')))
         if not isinstance(envs["GROUPS_WHITELIST"], list) or not all(isinstance(item, str) for item in envs["GROUPS_WHITELIST"]):
