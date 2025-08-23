@@ -42,7 +42,7 @@ def load_environ() -> dict:
 
 def print_logs(text : str):
     from datetime import datetime
-    print(f"[{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}] {text}")
+    print(f"[{datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}] {text}")
 
 
 def diff_resp(npm: dict, netbird: dict) -> dict:
