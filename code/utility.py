@@ -14,17 +14,21 @@ def load_config() -> dict:
     
     #Mandatory conf variables
     try:
-        clean_config['netbird']['api_url']=str(file_config['netbird']['api_url']).rstrip('/')
-        clean_config['netbird']['token']=str(file_config['netbird']['token'])
-        clean_config['npm']['api_url']=str(file_config['npm']['api_url']).rstrip('/')
-        clean_config['npm']['username']=str(file_config['npm']['username'])
-        clean_config['npm']['password']=str(file_config['npm']['password'])
+        clean_config['netbird']['api_url']=str(file_config.get('netbird', {}).get('api_url', '')).rstrip('/')
+        clean_config['netbird']['token']=str(file_config.get('netbird', {}).get('token', ''))
+        clean_config['npm']['api_url']=str(file_config.get('npm', {}).get('api_url', '')).rstrip('/')
+        clean_config['npm']['username']=str(file_config.get('npm', {}).get('username', ''))
+        clean_config['npm']['password']=str(file_config.get('npm', {}).get('password', ''))
     except KeyError as e:
         raise(f"Missing mandatory config key: {e}")
     except ValueError as e:
         raise(f"Error converting config key: {e}")
     except Exception as e:
         raise(f"Unexpected error while loading config key: {e}")
+    
+    for k, v in clean_config['netbird'].items():
+        if v == '':
+            raise ValueError(f"Mandatory config key netbird:{k} is empty")
     
     # Optional conf variables
     try:
