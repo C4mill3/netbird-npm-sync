@@ -92,13 +92,13 @@ def format_resp(resp : dict) -> dict:
     return output
 
 
-def update_conf(actions: dict, envs: dict, npm_token : str):
+def update_conf(actions: dict, config: dict, npm_token : str):
     ''' update the NPM conf based on the actions list'''
     import requests
         
     for name, ips in actions["add_group"]:
         
-        url = f"{envs['NPM_API_URL']}/nginx/access-lists"
+        url = f"{config['npm']['api_url']}/nginx/access-lists"
         headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {npm_token}",
@@ -123,7 +123,7 @@ def update_conf(actions: dict, envs: dict, npm_token : str):
             exit(1)
     
     for name, id_, ips in actions["update"]:
-        url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
+        url = f"{config['npm']['api_url']}/nginx/access-lists/{id_}"
         headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {npm_token}",
@@ -149,7 +149,7 @@ def update_conf(actions: dict, envs: dict, npm_token : str):
             exit(1)
 
     for id_ in actions["remove_group"]:
-        url = f"{envs['NPM_API_URL']}/nginx/access-lists/{id_}"
+        url = f"{config['npm']['api_url']}/nginx/access-lists/{id_}"
         headers = {
             "Accept": "application/json",
             "Authorization": f"Bearer {npm_token}",

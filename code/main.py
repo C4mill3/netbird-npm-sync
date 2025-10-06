@@ -2,7 +2,7 @@ import time
 
 import utility
 
-def main(envs : dict, verbose: bool = False):
+def main(config : dict, verbose: bool = False):
     import netbird as nb
     import npm
     ''' the main  '''
@@ -10,18 +10,18 @@ def main(envs : dict, verbose: bool = False):
     utility.print_logs("Running Task")
     
     if verbose: utility.print_logs("Fetching data from Netbird API...")
-    resp=nb.request_api(envs["NETBIRD_API_URL"], envs["NETBIRD_TOKEN"])
+    resp=nb.request_api(config['netbird']['api_url'], config['netbird']['token'])
     if resp is None:
         utility.print_logs("Failed to fetch data from Netbird API, exiting.")
         exit(1)
     if verbose: utility.print_logs("Netbird API: OK")
 
-    formatted_netbird_response = nb.format_resp(resp, envs["GROUPS_WHITELIST"], envs["GROUP_EXCEPT"])
+    formatted_netbird_response = nb.format_resp(resp, config['netbird']['group_whitelist'], config['npm']['group_rule_excep'])
 
-    npm_token, npm_token_expires = npm.request_token(envs["NPM_API_URL"], envs["NPM_USERNAME"], envs["NPM_PASSWORD"], npm_token, npm_token_expires)
+    npm_token, npm_token_expires = npm.request_token(config['npm']['api_url'], config['npm']['username'], config['npm']['password'], npm_token, npm_token_expires)
     if verbose: utility.print_logs("NPM Token: OK")
     
-    resp=npm.request_api(envs["NPM_API_URL"], npm_token)
+    resp=npm.request_api(config['npm']['api_url'], npm_token)
     if resp is None:
         utility.print_logs("Failed to fetch data from NPM API, exiting.")
         exit(1)
@@ -31,7 +31,7 @@ def main(envs : dict, verbose: bool = False):
 
     actions = utility.diff_resp(formatted_npm_response, formatted_netbird_response)
     
-    npm.update_conf(actions, envs, npm_token)
+    npm.update_conf(actions, config, npm_token)
     if verbose: utility.print_logs("Up to date")
     
 
@@ -40,11 +40,11 @@ if __name__=='__main__':
     global npm_token, npm_token_expires
     npm_token=""
     npm_token_expires=0
-    envs=utility.load_environ()
+    config=utility.load_config()
     
     try:
         utility.print_logs("Running initial run...")
-        main(envs, verbose=True)
+        main(config, verbose=True)
     except Exception as e:
         print(f"Error during initial run: {e}")
         exit(1) 
@@ -53,25 +53,25 @@ if __name__=='__main__':
     import threading
 
     def run_schedule():
-        utility.print_logs(f"Task scheduled to run every {envs['RUN_EVERY_MINUTES']} minutes.")
+        utility.print_logs(f"Task scheduled to run every {config['refresh_every_minutes']} minutes.")
         import schedule
-        schedule.every(envs["RUN_EVERY_MINUTES"]).minutes.do(main, envs)
+        schedule.every(config['refresh_every_minutes']).minutes.do(main, config)
         while True:
             schedule.run_pending()
             time.sleep(1)
 
     def run_socket():
-        utility.print_logs(f"Socket server enabled on port 8080 with a limit of {envs['SOCKET_LIMIT']} requests per hour.")
+        utility.print_logs(f"Socket server enabled on port {config['socket']['port']} with a limit of {config['socket']['limit_per_hour']} requests per hour.")
         from socket_ import run
-        run(envs)
+        run(config)
 
     threads = []
-    if envs["RUN_EVERY_MINUTES"] > 0:
+    if config['refresh_every_minutes'] > 0:
         t = threading.Thread(target=run_schedule, daemon=True)
         threads.append(t)
         t.start()
 
-    if envs["SOCKET_LIMIT"] > 0:
+    if config['socket']['enable']:
         t = threading.Thread(target=run_socket, daemon=True)
         threads.append(t)
         t.start()

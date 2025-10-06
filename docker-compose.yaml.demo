@@ -8,22 +8,11 @@ services:
       interval: '10s'
       timeout: '3s'
 
-
   netbird-sync:
     image: 'ghcr.io/c4mill3/netbird-npm-sync:latest'
-
-    environment:
-      # Mandatory
-      NETBIRD_API_URL: 'https://sub.domain.com/api'
-      NETBIRD_TOKEN: 'X'
-      NPM_API_URL: 'http://npm:81/api'
-      NPM_USERNAME: 'X'
-      NPM_PASSWORD: 'X'
-
-      # Optional
-      RUN_EVERY_MINUTES: '30'
-      SOCKET_LIMIT: '10'
-      GROUPS_WHITELIST: '["home-*", "admin"]'
-      GROUP_EXCEPT: '{"groupname": ["192.168.1.0/24"]}'
+    container_name: 'netbird-sync'
+    restart: on-failure:3
+    volumes:
+      - './config.yaml:/app/config.yaml:ro'
     depends_on:
       npm:

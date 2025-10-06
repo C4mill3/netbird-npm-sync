@@ -26,22 +26,37 @@ services:
 
   netbird-sync:
     image: 'ghcr.io/c4mill3/netbird-npm-sync:latest'
-
-    environment:
-      # Mandatory
-      NETBIRD_API_URL: 'https://sub.domain.com/api'
-      NETBIRD_TOKEN: 'X'
-      NPM_API_URL: 'http://npm:81/api'
-      NPM_USERNAME: 'X'
-      NPM_PASSWORD: 'X'
-
-      # Optional
-      RUN_EVERY_MINUTES: '30'
-      GROUPS_WHITELIST: '["home-*", "admin"]'
-      GROUP_EXCEPT: '{"groupname": ["192.168.1.0/24"]}'
+    container_name: 'netbird-sync'
+    restart: on-failure:3
+    volumes:
+      - './config.yaml:/app/config.yaml:ro'
     depends_on:
       npm:
-        condition: 'service_healthy'
+```
+
+`config.yaml`
+```yaml
+netbird:
+  api_url: "https://sub.domain.com/api"
+  token: "X"
+  group_whitelist:
+    - "home-*"
+    - "admin"ù
+
+npm:
+  api_url: "http://npm:81/api"
+  username: "nb-sync@home.lab"
+  password: "X"
+  group_rule_excep:
+    groupname:
+      - "192.168.1.0/24"
+
+refresh_every_minutes: 30
+
+socket:
+  enable: true
+  limit_per_hour: 10
+  port: 8080
 ```
 
 
@@ -55,21 +70,33 @@ pip install -r requirements.txt
 python3 code/main.py
 ``` 
 
+##  Config Variables
+> `config.yaml` should be mounted as a volume at path `/app/config.yaml`
 
-## Environment Variables
+> Mandatory variables are:
+> * netbird: `api_url`, `token`
+> * npm: `api_url`, `username`, `password`
 
-* `NETBIRD_API_URL`: The Netbird API URL. exemple: `https://netbird.domain.com/api` or `https://api.domain.com`
-* `NETBIRD_TOKEN`: Your Netbird token. See [Get an API Netbird Token](#get-an-api-netbird-token).
+### netbird
+* `api_url`: The Netbird API URL. exemple: `https://netbird.domain.com/api` or `https://api.domain.com`
+* `token`: Your Netbird token. See [Get an API Netbird Token](#get-an-api-netbird-token).
+* `group_whitelist`: Should be in list format, you can use joker cards. exemple: `/home*` or `admin`
 
-* `NPM_API_URL`: The NPM API URL. exemple:  priority to internal: `http://DOCKER_NAME:81/api` or `https://npm.domain.com/api`
-* `NPM_USERNAME`: npm user email, you should create a user with `ACL` permission. See [Recommended Permissions](#recommended-account-permissions-for-nginx-proxy-manager).
-* `NPM_PASSWORD`: npm user password
+### npm
+* `api_url`: The NPM API URL. exemple:  priority to internal: `http://DOCKER_NAME:81/api` or could be `https://npm.domain.com/api`
+* `username`: npm user email, you should create a user with `ACL` permission. See [Recommended Permissions](#recommended-account-permissions-for-nginx-proxy-manager).
+* `password`: npm user password
+* `group_rule_excep`: The ip will be able to access everything, should be in dict format, you can precise submask.exemple: `{group1:["192.168.1.0/24", ...]}`
 
+### socket 
+* `enable`: if set, enable a socket server where npm or user could request a refresh. Default is disabled (false)
+* `limit_per_hour`: set a limit of hourly requests. Default is `10` but default is also disabled.
+* `port`: port socket should run on the container. Default is 8080.
+
+
+### Other
 * `RUN_EVERY_MINUTES`: How often the `ACL` should be updated, in minutes. Default is `30`. If you want to run it only at start, set it to `0`.
-* `SOCKET_LIMIT`: if set, enable a socket server on port 8080 and set a limit of hourly requests. Default is `0` (disabled).
 
-* `GROUPS_WHITELIST`: Should be in list format, you can use joker cards. exemple: `["/home*", "admin"]`
-* `GROUP_EXCEPT`: The ip will be able to access everything, should be in dict format, you can precise submask.exemple: `{group1:["192.168.1.0/24", ...]}`
 
 You can find npm api doc in: `https://npm.domain.com/api/schema`.
 

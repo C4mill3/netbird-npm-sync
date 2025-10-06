@@ -1,44 +1,60 @@
-def load_environ() -> dict:
-    from os import environ
-    import json
-    envs={}
-
-    #Mandatory env variables
-    envs["NETBIRD_API_URL"]=str(environ.get("NETBIRD_API_URL")).rstrip('/')
-    envs["NETBIRD_TOKEN"]=str(environ.get("NETBIRD_TOKEN"))
-    envs["NPM_API_URL"]=str(environ.get("NPM_API_URL")).rstrip('/')
-    envs["NPM_USERNAME"]=str(environ.get("NPM_USERNAME"))
-    envs["NPM_PASSWORD"]=str(environ.get("NPM_PASSWORD"))
-    
-    for key in envs:
-        if envs[key]=='':
-            raise(f"Env Variable {key} is missing")
-    
-    
-    # Optional env variables
+def load_config() -> dict:
+    import yaml
     try:
-        envs["RUN_EVERY_MINUTES"]=int(environ.get("RUN_EVERY_MINUTES", 30))
-
-        envs["SOCKET_LIMIT"]=int(environ.get("SOCKET_LIMIT", 0))
-        
-        envs["GROUPS_WHITELIST"]=list(json.loads(environ.get("GROUPS_WHITELIST", '["*"]')))
-        if not isinstance(envs["GROUPS_WHITELIST"], list) or not all(isinstance(item, str) for item in envs["GROUPS_WHITELIST"]):
-            raise ValueError("GROUPS_WHITELIST must be a list of str")
-        
-        envs["GROUP_EXCEPT"]=dict(json.loads(environ.get("GROUP_EXCEPT", '{}'))) 
-        # Validate GROUP_EXCEPT format: must be {"str": ["str", ...]} for {"group1": ["192.168.1.1", ...]}
-        if not isinstance(envs["GROUP_EXCEPT"], dict):
-            raise ValueError("GROUP_EXCEPT must be a dict")
-        for k, v in envs["GROUP_EXCEPT"].items():
-            if not isinstance(k, str) or not isinstance(v, list) or not all(isinstance(item, str) for item in v):
-                raise ValueError("GROUP_EXCEPT must be in the format {\"str\": [\"str\", ...]}")
-    except json.JSONDecodeError as e:
-        raise(f"Error parsing environment variables: {e}")
-    except ValueError as e:
-        raise(f"Error converting environment variables: {e}")
+        with open("/app/config.yaml", "r") as f:
+            file_config=yaml.safe_load(f)
+    except FileNotFoundError, :
+        raise("Config file /app/config.yaml not found")
+    except yaml.YAMLError as e:
+        raise(f"Error parsing config file: {e}")
     except Exception as e:
-        raise(f"Unexpected error while loading environment variables: {e}")
-    return envs
+        raise(f"Unexpected error while loading config file: {e}")
+    
+    clean_config = {}
+    
+    #Mandatory conf variables
+    try:
+        clean_config['netbird']['api_url']=str(file_config['netbird']['api_url']).rstrip('/')
+        clean_config['netbird']['token']=str(file_config['netbird']['token'])
+        clean_config['npm']['api_url']=str(file_config['npm']['api_url']).rstrip('/')
+        clean_config['npm']['username']=str(file_config['npm']['username'])
+        clean_config['npm']['password']=str(file_config['npm']['password'])
+    except KeyError as e:
+        raise(f"Missing mandatory config key: {e}")
+    except ValueError as e:
+        raise(f"Error converting config key: {e}")
+    except Exception as e:
+        raise(f"Unexpected error while loading config key: {e}")
+    
+    # Optional conf variables
+    try:
+        clean_config['refresh_every_minutes']=int(file_config.get("refresh_every_minutes", 30))
+        assert clean_config['refresh_every_minutes'] >= 0, "refresh_every_minutes must be a positive integer or null (0)"
+
+        clean_config['socket']['enable']=bool(file_config.get('socket', {}).get('enable', False))
+        clean_config['socket']['limit_per_hour']=int(file_config.get('socket', {}).get('limit_per_hour', 10))
+        
+        if clean_config['socket']['enable']:
+            assert clean_config['socket']['limit_per_hour'] > 0, "limit_per_hour must be a positive integer"
+        
+        
+        clean_config['netbird']['group_whitelist']=list(file_config.get('netbird', {}).get('group_whitelist', ['*']))
+        if not isinstance(clean_config['netbird']['group_whitelist'], list) or not all(isinstance(item, str) for item in clean_config['netbird']['group_whitelist']):
+            raise ValueError("group_whitelist must be a list of str")
+        
+        clean_config['npm']['group_rule_excep']=dict(file_config.get('npm', {}).get('group_rule_excep', {})) 
+        # Validate clean_config format: must be {"str": ["str", ...]} for {"group1": ["192.168.1.1", ...]}
+        if not isinstance(clean_config['npm']['group_rule_excep'], dict):
+            raise ValueError("clean_config must be a dict")
+        for k, v in clean_config['npm']['group_rule_excep'].items():
+            if not isinstance(k, str) or not isinstance(v, list) or not all(isinstance(item, str) for item in v):
+                raise ValueError("group_rule_excep must be in the format {\"str\": [\"str\", ...]}")
+    except ValueError as e:
+        raise(f"Error converting conf variables: {e}")
+    except Exception as e:
+        raise(f"Unexpected error while loading conf variables: {e}")
+    
+    return clean_config
 
 def print_logs(text : str):
     from datetime import datetime
