@@ -3,7 +3,7 @@ def load_config() -> dict:
     try:
         with open("/app/config.yaml", "r") as f:
             file_config=yaml.safe_load(f)
-    except FileNotFoundError, :
+    except FileNotFoundError:
         raise("Config file /app/config.yaml not found")
     except yaml.YAMLError as e:
         raise(f"Error parsing config file: {e}")
