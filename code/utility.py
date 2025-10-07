@@ -42,6 +42,7 @@ def load_config() -> dict:
         
         if clean_config['socket']['enable']:
             assert clean_config['socket']['limit_per_hour'] > 0, "limit_per_hour must be a positive integer"
+            assert clean_config['socket']['limit_per_hour'] <= 60, "limit_per_hour must be under 60 because of the 1 request per minute limit"
             assert 1 <= clean_config['socket']['port'] <= 65535, "port must be between 1 and 65535"
         
         clean_config['netbird']['group_whitelist']=list(file_config.get('netbird', {}).get('group_whitelist', ['*']))
@@ -55,6 +56,7 @@ def load_config() -> dict:
         for k, v in clean_config['npm']['group_rule_excep'].items():
             if not isinstance(k, str) or not isinstance(v, list) or not all(isinstance(item, str) for item in v):
                 raise ValueError("group_rule_excep must be in the format {\"str\": [\"str\", ...]}")
+
     except ValueError as e:
         raise(f"Error converting conf variables: {e}")
     except Exception as e:
