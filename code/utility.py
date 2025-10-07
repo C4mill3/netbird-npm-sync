@@ -9,8 +9,9 @@ def load_config() -> dict:
         raise(f"Error parsing config file: {e}")
     except Exception as e:
         raise(f"Unexpected error while loading config file: {e}")
+    assert isinstance(file_config, dict), "Config file is not a valid YAML dictionary"
     
-    clean_config = {}
+    clean_config = {'netbird': {}, 'npm': {}, 'socket': {}} # init 1st level keys
     
     #Mandatory conf variables
     try:
@@ -37,10 +38,11 @@ def load_config() -> dict:
 
         clean_config['socket']['enable']=bool(file_config.get('socket', {}).get('enable', False))
         clean_config['socket']['limit_per_hour']=int(file_config.get('socket', {}).get('limit_per_hour', 10))
+        clean_config['socket']['port']=int(file_config.get('socket', {}).get('port', 8080))
         
         if clean_config['socket']['enable']:
             assert clean_config['socket']['limit_per_hour'] > 0, "limit_per_hour must be a positive integer"
-        
+            assert 1 <= clean_config['socket']['port'] <= 65535, "port must be between 1 and 65535"
         
         clean_config['netbird']['group_whitelist']=list(file_config.get('netbird', {}).get('group_whitelist', ['*']))
         if not isinstance(clean_config['netbird']['group_whitelist'], list) or not all(isinstance(item, str) for item in clean_config['netbird']['group_whitelist']):
