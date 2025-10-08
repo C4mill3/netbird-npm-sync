@@ -48,7 +48,7 @@ npm:
   username: "nb-sync@home.lab"
   password: "X"
   group_rule_excep:
-    groupname:
+    nb-groupname:
       - "192.168.1.0/24"
 
 refresh_every_minutes: 30

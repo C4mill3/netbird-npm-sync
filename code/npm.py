@@ -158,9 +158,9 @@ def update_conf(actions: dict, config: dict, npm_token : str):
         try:
             response = requests.delete(url, headers=headers)
             response.raise_for_status()
-            utility.print_logs(f"Delete group {name} with IPs {ips} to NPM.")
+            utility.print_logs(f"Delete group of id {id_} to NPM.")
         except requests.RequestException as e:
-            utility.print_logs(f"Failed to delete group {name} with IPs {ips} to NPM: {e}")
+            utility.print_logs(f"Failed to delete group of id {id_} to NPM: {e}")
             exit(1)
     
 
