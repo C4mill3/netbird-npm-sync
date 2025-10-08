@@ -30,6 +30,8 @@ services:
     restart: on-failure:3
     volumes:
       - './config.yaml:/app/config.yaml:ro'
+    expose:
+      - '8080'
     depends_on:
       npm:
 ```
